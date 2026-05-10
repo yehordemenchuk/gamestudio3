@@ -21,9 +21,9 @@ public class UserService {
 
     @Transactional
     public UserResponse registerUser(RegistrationRequest registrationRequest) throws EntityExistsException {
-        if (userEntityJpaRepository.existsByEmailOrUsername(registrationRequest.email(), registrationRequest.username())) {
+        /*if (userEntityJpaRepository.existsByEmailOrUsername(registrationRequest.email(), registrationRequest.username())) {
             throw new EntityExistsException();
-        }
+        }*/
 
         UserEntity userEntity = userEntityMapper.fromRegistrationRequest(registrationRequest);
 
