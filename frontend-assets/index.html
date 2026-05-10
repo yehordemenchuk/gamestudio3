@@ -1,0 +1,1041 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Slitherlink – Loop the Loop</title>
+
+  <style>
+    /* =========================================================
+       SLITHERLINK - SINGLE FILE GAME
+       Vanilla HTML/CSS/JS
+       ========================================================= */
+
+    :root{
+      --bg:#f9f4e8;
+      --panel:#fffdf7;
+      --ink:#2c3e66;
+      --soft:#bfc7d6;
+      --accent:#4f7cff;
+      --danger:#d94141;
+      --success:#2da56d;
+      --shadow:0 10px 30px rgba(0,0,0,.12);
+    }
+
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      font-family:Inter,system-ui,sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,.7), transparent 40%),
+        linear-gradient(180deg,#faf6eb,#f4efe0);
+      color:#2d3440;
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      padding:24px;
+    }
+
+    .wrapper{
+      width:min(1100px,100%);
+      display:grid;
+      gap:20px;
+    }
+
+    .header{
+      position:relative;
+      background:var(--panel);
+      border-radius:24px;
+      padding:24px 30px;
+      overflow:hidden;
+      box-shadow:var(--shadow);
+    }
+
+    .header::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          rgba(44,62,102,.03) 0px,
+          rgba(44,62,102,.03) 1px,
+          transparent 1px,
+          transparent 28px
+        ),
+        repeating-linear-gradient(
+          0deg,
+          rgba(44,62,102,.03) 0px,
+          rgba(44,62,102,.03) 1px,
+          transparent 1px,
+          transparent 28px
+        );
+      pointer-events:none;
+    }
+
+    .logo{
+      position:relative;
+      z-index:1;
+    }
+
+    .logo h1{
+      margin:0;
+      font-size:clamp(2rem,4vw,3rem);
+      letter-spacing:.04em;
+      color:var(--ink);
+    }
+
+    .logo p{
+      margin:.35rem 0 0;
+      color:#69748a;
+      font-size:1rem;
+    }
+
+    .main{
+      display:grid;
+      grid-template-columns: 1fr 300px;
+      gap:20px;
+    }
+
+    @media (max-width: 900px){
+      .main{
+        grid-template-columns:1fr;
+      }
+    }
+
+    .game-panel{
+      background:var(--panel);
+      border-radius:24px;
+      padding:20px;
+      box-shadow:var(--shadow);
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      position:relative;
+    }
+
+    canvas{
+      width:min(85vw,700px);
+      height:min(85vw,700px);
+      max-width:700px;
+      max-height:700px;
+      min-width:400px;
+      min-height:400px;
+      touch-action:none;
+      border-radius:20px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.65), rgba(255,255,255,.35)),
+        repeating-linear-gradient(
+          0deg,
+          rgba(0,0,0,.025) 0px,
+          rgba(0,0,0,.025) 1px,
+          transparent 1px,
+          transparent 32px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          rgba(0,0,0,.025) 0px,
+          rgba(0,0,0,.025) 1px,
+          transparent 1px,
+          transparent 32px
+        );
+      box-shadow:
+        inset 0 0 0 1px rgba(0,0,0,.06),
+        0 10px 30px rgba(0,0,0,.08);
+    }
+
+    .sidebar{
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+
+    .card{
+      background:var(--panel);
+      border-radius:22px;
+      padding:18px;
+      box-shadow:var(--shadow);
+    }
+
+    .controls{
+      display:grid;
+      gap:10px;
+    }
+
+    button{
+      border:none;
+      padding:12px 14px;
+      border-radius:14px;
+      background:var(--ink);
+      color:white;
+      font-weight:700;
+      cursor:pointer;
+      transition:.2s;
+      font-size:.95rem;
+    }
+
+    button:hover{
+      transform:translateY(-1px);
+      background:#385188;
+    }
+
+    button.secondary{
+      background:#dfe5f3;
+      color:#23304f;
+    }
+
+    button.secondary:hover{
+      background:#cfd8eb;
+    }
+
+    .puzzle-buttons{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:8px;
+      margin-top:10px;
+    }
+
+    .toggle{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-top:8px;
+    }
+
+    .toggle input{
+      width:18px;
+      height:18px;
+    }
+
+    .status{
+      text-align:center;
+      padding:14px;
+      border-radius:16px;
+      font-weight:700;
+      font-size:1rem;
+      background:#eef2fa;
+      color:#3b4b6b;
+    }
+
+    .status.solved{
+      background:#e7fff2;
+      color:var(--success);
+      animation:pulse 1s infinite alternate;
+    }
+
+    @keyframes pulse{
+      from{transform:scale(1);}
+      to{transform:scale(1.03);}
+    }
+
+    details{
+      border-radius:14px;
+      overflow:hidden;
+      background:#f6f7fb;
+    }
+
+    summary{
+      cursor:pointer;
+      padding:12px;
+      font-weight:700;
+    }
+
+    .instructions{
+      padding:0 14px 14px;
+      line-height:1.5;
+      color:#586173;
+    }
+
+    .legend{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-top:10px;
+      font-size:.9rem;
+      color:#666;
+    }
+
+    .dot{
+      width:12px;
+      height:12px;
+      border-radius:50%;
+      background:#bfc7d6;
+    }
+
+    .line-demo{
+      width:28px;
+      height:6px;
+      border-radius:6px;
+      background:#2c3e66;
+    }
+
+    .err-demo{
+      width:28px;
+      height:6px;
+      border-radius:6px;
+      background:#d94141;
+    }
+
+    .footer-note{
+      font-size:.82rem;
+      color:#7d8594;
+      line-height:1.4;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="wrapper">
+
+  <div class="header">
+    <div class="logo">
+      <h1>Slitherlink – Loop the Loop</h1>
+      <p>Create one continuous loop that satisfies every numbered cell.</p>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <div class="game-panel">
+      <canvas id="gameCanvas" width="700" height="700"></canvas>
+    </div>
+
+    <div class="sidebar">
+
+      <div class="card">
+        <div class="controls">
+
+          <button id="newGameBtn">New Game</button>
+          <button id="checkBtn">Check Solution</button>
+          <button class="secondary" id="resetBtn">Reset Current Puzzle</button>
+          <button class="secondary" id="nextBtn">Next Puzzle</button>
+
+          <div class="toggle">
+            <input type="checkbox" id="autoCheck"/>
+            <label for="autoCheck">Auto-check errors</label>
+          </div>
+
+          <div class="puzzle-buttons">
+            <button class="secondary puzzleBtn" data-index="0">Easy</button>
+            <button class="secondary puzzleBtn" data-index="1">Medium</button>
+            <button class="secondary puzzleBtn" data-index="2">Hard</button>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="card">
+        <div id="status" class="status">
+          Not yet solved
+        </div>
+
+        <div class="legend">
+          <div class="line-demo"></div> Loop Edge
+        </div>
+
+        <div class="legend">
+          <div class="err-demo"></div> Error Highlight
+        </div>
+      </div>
+
+      <div class="card">
+        <details open>
+          <summary>How to Play</summary>
+          <div class="instructions">
+            <p>
+              Click or tap between two dots to draw a line.
+            </p>
+
+            <ul>
+              <li>Numbers indicate how many surrounding edges belong to the loop.</li>
+              <li>The final solution must form one single continuous loop.</li>
+              <li>No branches or disconnected mini-loops.</li>
+              <li>Use “Check Solution” anytime.</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+
+      <div class="card footer-note">
+        Puzzle customization:
+        edit the <strong>PUZZLES</strong> array in JavaScript.
+        Use <code>null</code> for empty cells.
+        Change rows/columns to adjust grid size.
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  /* =========================================================
+     SLITHERLINK GAME
+     ========================================================= */
+
+  /*
+  PUZZLE FORMAT:
+  - null = empty cell
+  - numbers = clues
+
+  You can customize puzzles by editing the arrays below.
+  Grid size automatically adapts to rows/columns.
+  */
+
+  const PUZZLES = [
+    {
+      name:"Easy",
+      grid:[
+        [null,3,null,1,null],
+        [2,null,null,null,2],
+        [null,2,3,2,null],
+        [1,null,null,null,2],
+        [null,2,null,3,null]
+      ]
+    },
+    {
+      name:"Medium",
+      grid:[
+        [3,null,2,null,1],
+        [null,2,null,2,null],
+        [2,null,3,null,2],
+        [null,1,null,2,null],
+        [1,null,2,null,3]
+      ]
+    },
+    {
+      name:"Hard",
+      grid:[
+        [null,3,2,null,3],
+        [2,null,null,2,null],
+        [null,1,3,null,2],
+        [3,null,2,null,null],
+        [null,2,null,3,1]
+      ]
+    }
+  ];
+
+  const canvas = document.getElementById("gameCanvas");
+  const ctx = canvas.getContext("2d");
+
+  const statusEl = document.getElementById("status");
+
+  const autoCheckEl = document.getElementById("autoCheck");
+
+  const EDGE_NONE = 0;
+  const EDGE_ON = 1;
+
+  let currentPuzzleIndex = 0;
+  let puzzle = PUZZLES[currentPuzzleIndex];
+
+  let rows, cols;
+
+  // horizontal edges: rows+1 x cols
+  // vertical edges: rows x cols+1
+  let hEdges = [];
+  let vEdges = [];
+
+  let hoverEdge = null;
+
+  let confetti = [];
+
+  const DOT_RADIUS = 5;
+  const EDGE_HIT = 16;
+
+  let board = {
+    padding:60,
+    cell:100,
+    offsetX:0,
+    offsetY:0
+  };
+
+  /* =========================================================
+     INIT
+     ========================================================= */
+
+  function initPuzzle(index){
+
+    currentPuzzleIndex = index;
+    puzzle = PUZZLES[index];
+
+    rows = puzzle.grid.length;
+    cols = puzzle.grid[0].length;
+
+    hEdges = Array.from({length: rows+1}, () =>
+      Array(cols).fill(EDGE_NONE)
+    );
+
+    vEdges = Array.from({length: rows}, () =>
+      Array(cols+1).fill(EDGE_NONE)
+    );
+
+    resizeBoard();
+    setStatus("Not yet solved", false);
+    draw();
+  }
+
+  function resizeBoard(){
+
+    const size = Math.min(canvas.clientWidth, canvas.clientHeight);
+
+    canvas.width = size * devicePixelRatio;
+    canvas.height = size * devicePixelRatio;
+
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+
+    board.cell = Math.min(
+      (size - 120) / cols,
+      (size - 120) / rows
+    );
+
+    board.offsetX = (size - cols * board.cell)/2;
+    board.offsetY = (size - rows * board.cell)/2;
+  }
+
+  /* =========================================================
+     DRAW
+     ========================================================= */
+
+  function draw(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    drawNumbers();
+    drawHover();
+    drawEdges();
+    drawDots();
+    drawConfetti();
+
+    requestAnimationFrame(() => {
+      if(confetti.length > 0){
+        updateConfetti();
+        draw();
+      }
+    });
+  }
+
+  function drawDots(){
+
+    ctx.fillStyle = "#bcc6d6";
+
+    for(let r=0;r<=rows;r++){
+      for(let c=0;c<=cols;c++){
+
+        const x = board.offsetX + c*board.cell;
+        const y = board.offsetY + r*board.cell;
+
+        ctx.beginPath();
+        ctx.arc(x,y,DOT_RADIUS,0,Math.PI*2);
+        ctx.fill();
+      }
+    }
+  }
+
+  function drawNumbers(){
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = `${Math.floor(board.cell*0.34)}px Georgia`;
+
+    for(let r=0;r<rows;r++){
+      for(let c=0;c<cols;c++){
+
+        const val = puzzle.grid[r][c];
+        if(val === null) continue;
+
+        const x = board.offsetX + c*board.cell + board.cell/2;
+        const y = board.offsetY + r*board.cell + board.cell/2;
+
+        let invalid = false;
+
+        if(autoCheckEl.checked){
+
+          const count = countCellEdges(r,c);
+
+          if(count > val){
+            invalid = true;
+          }
+        }
+
+        ctx.fillStyle = invalid ? "#d94141" : "#2b3248";
+        ctx.fillText(val,x,y);
+      }
+    }
+  }
+
+  function drawEdges(){
+
+    ctx.lineCap = "round";
+
+    // Horizontal
+    for(let r=0;r<=rows;r++){
+      for(let c=0;c<cols;c++){
+
+        if(hEdges[r][c] !== EDGE_ON) continue;
+
+        const x1 = board.offsetX + c*board.cell;
+        const y1 = board.offsetY + r*board.cell;
+        const x2 = x1 + board.cell;
+
+        let invalid = autoCheckEl.checked && edgeIsInvalid("h",r,c);
+
+        ctx.strokeStyle = invalid ? "#d94141" : "#2c3e66";
+        ctx.lineWidth = invalid ? 6 : 7;
+
+        if(!invalid){
+          ctx.shadowColor = "rgba(79,124,255,.35)";
+          ctx.shadowBlur = 10;
+        }else{
+          ctx.shadowBlur = 0;
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(x1,y1);
+        ctx.lineTo(x2,y1);
+        ctx.stroke();
+      }
+    }
+
+    // Vertical
+    for(let r=0;r<rows;r++){
+      for(let c=0;c<=cols;c++){
+
+        if(vEdges[r][c] !== EDGE_ON) continue;
+
+        const x1 = board.offsetX + c*board.cell;
+        const y1 = board.offsetY + r*board.cell;
+        const y2 = y1 + board.cell;
+
+        let invalid = autoCheckEl.checked && edgeIsInvalid("v",r,c);
+
+        ctx.strokeStyle = invalid ? "#d94141" : "#2c3e66";
+        ctx.lineWidth = invalid ? 6 : 7;
+
+        if(!invalid){
+          ctx.shadowColor = "rgba(79,124,255,.35)";
+          ctx.shadowBlur = 10;
+        }else{
+          ctx.shadowBlur = 0;
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(x1,y1);
+        ctx.lineTo(x1,y2);
+        ctx.stroke();
+      }
+    }
+
+    ctx.shadowBlur = 0;
+  }
+
+  function drawHover(){
+
+    if(!hoverEdge) return;
+
+    ctx.strokeStyle = "rgba(79,124,255,.4)";
+    ctx.lineWidth = 8;
+    ctx.lineCap = "round";
+
+    const e = hoverEdge;
+
+    if(e.type === "h"){
+      const x = board.offsetX + e.c*board.cell;
+      const y = board.offsetY + e.r*board.cell;
+
+      ctx.beginPath();
+      ctx.moveTo(x,y);
+      ctx.lineTo(x+board.cell,y);
+      ctx.stroke();
+
+    }else{
+
+      const x = board.offsetX + e.c*board.cell;
+      const y = board.offsetY + e.r*board.cell;
+
+      ctx.beginPath();
+      ctx.moveTo(x,y);
+      ctx.lineTo(x,y+board.cell);
+      ctx.stroke();
+    }
+  }
+
+  /* =========================================================
+     INPUT
+     ========================================================= */
+
+  canvas.addEventListener("mousemove", e => {
+    hoverEdge = findEdge(e);
+    draw();
+  });
+
+  canvas.addEventListener("mouseleave", () => {
+    hoverEdge = null;
+    draw();
+  });
+
+  canvas.addEventListener("click", e => {
+
+    const edge = findEdge(e);
+    if(!edge) return;
+
+    toggleEdge(edge);
+    draw();
+  });
+
+  canvas.addEventListener("touchstart", e => {
+    e.preventDefault();
+
+    const touch = e.touches[0];
+
+    const fakeEvent = {
+      clientX:touch.clientX,
+      clientY:touch.clientY
+    };
+
+    const edge = findEdge(fakeEvent);
+
+    if(edge){
+      toggleEdge(edge);
+      draw();
+    }
+
+  },{passive:false});
+
+  function toggleEdge(edge){
+
+    if(edge.type === "h"){
+      hEdges[edge.r][edge.c] =
+        hEdges[edge.r][edge.c] ? EDGE_NONE : EDGE_ON;
+    }else{
+      vEdges[edge.r][edge.c] =
+        vEdges[edge.r][edge.c] ? EDGE_NONE : EDGE_ON;
+    }
+
+    setStatus("Not yet solved", false);
+  }
+
+  function findEdge(e){
+
+    const rect = canvas.getBoundingClientRect();
+
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    // Horizontal edges
+    for(let r=0;r<=rows;r++){
+      for(let c=0;c<cols;c++){
+
+        const x1 = board.offsetX + c*board.cell;
+        const y1 = board.offsetY + r*board.cell;
+
+        const mx = x1 + board.cell/2;
+
+        if(
+          Math.abs(y-y1) < EDGE_HIT &&
+          Math.abs(x-mx) < board.cell/2
+        ){
+          return {type:"h",r,c};
+        }
+      }
+    }
+
+    // Vertical edges
+    for(let r=0;r<rows;r++){
+      for(let c=0;c<=cols;c++){
+
+        const x1 = board.offsetX + c*board.cell;
+        const y1 = board.offsetY + r*board.cell;
+
+        const my = y1 + board.cell/2;
+
+        if(
+          Math.abs(x-x1) < EDGE_HIT &&
+          Math.abs(y-my) < board.cell/2
+        ){
+          return {type:"v",r,c};
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /* =========================================================
+     RULE CHECKS
+     ========================================================= */
+
+  function countCellEdges(r,c){
+
+    let n = 0;
+
+    if(hEdges[r][c]) n++;
+    if(hEdges[r+1][c]) n++;
+    if(vEdges[r][c]) n++;
+    if(vEdges[r][c+1]) n++;
+
+    return n;
+  }
+
+  function edgeIsInvalid(type,r,c){
+
+    // Number overflows
+    const affected = [];
+
+    if(type === "h"){
+      if(r>0) affected.push([r-1,c]);
+      if(r<rows) affected.push([r,c]);
+    }else{
+      if(c>0) affected.push([r,c-1]);
+      if(c<cols) affected.push([r,c]);
+    }
+
+    for(const [rr,cc] of affected){
+
+      const clue = puzzle.grid[rr]?.[cc];
+
+      if(clue !== null && clue !== undefined){
+        if(countCellEdges(rr,cc) > clue){
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  function buildGraph(){
+
+    const graph = new Map();
+
+    function addNode(key){
+      if(!graph.has(key)){
+        graph.set(key,[]);
+      }
+    }
+
+    function addEdge(a,b){
+      addNode(a);
+      addNode(b);
+
+      graph.get(a).push(b);
+      graph.get(b).push(a);
+    }
+
+    // Horizontal
+    for(let r=0;r<=rows;r++){
+      for(let c=0;c<cols;c++){
+
+        if(hEdges[r][c]){
+
+          const a = `${r},${c}`;
+          const b = `${r},${c+1}`;
+
+          addEdge(a,b);
+        }
+      }
+    }
+
+    // Vertical
+    for(let r=0;r<rows;r++){
+      for(let c=0;c<=cols;c++){
+
+        if(vEdges[r][c]){
+
+          const a = `${r},${c}`;
+          const b = `${r+1},${c}`;
+
+          addEdge(a,b);
+        }
+      }
+    }
+
+    return graph;
+  }
+
+  function checkSolved(){
+
+    // Check clues
+    for(let r=0;r<rows;r++){
+      for(let c=0;c<cols;c++){
+
+        const clue = puzzle.grid[r][c];
+
+        if(clue === null) continue;
+
+        if(countCellEdges(r,c) !== clue){
+          return false;
+        }
+      }
+    }
+
+    const graph = buildGraph();
+
+    if(graph.size === 0) return false;
+
+    // Every node degree must be 2
+    for(const [node,neighbors] of graph.entries()){
+      if(neighbors.length !== 2){
+        return false;
+      }
+    }
+
+    // Connectivity
+    const start = graph.keys().next().value;
+    const visited = new Set();
+
+    const stack = [start];
+
+    while(stack.length){
+
+      const n = stack.pop();
+
+      if(visited.has(n)) continue;
+
+      visited.add(n);
+
+      for(const nb of graph.get(n)){
+        stack.push(nb);
+      }
+    }
+
+    if(visited.size !== graph.size){
+      return false;
+    }
+
+    return true;
+  }
+
+  /* =========================================================
+     STATUS
+     ========================================================= */
+
+  function setStatus(text,solved){
+
+    statusEl.textContent = text;
+
+    if(solved){
+      statusEl.classList.add("solved");
+    }else{
+      statusEl.classList.remove("solved");
+    }
+  }
+
+  /* =========================================================
+     CONFETTI
+     ========================================================= */
+
+  function launchConfetti(){
+
+    confetti = [];
+
+    for(let i=0;i<160;i++){
+
+      confetti.push({
+        x: Math.random()*canvas.clientWidth,
+        y: -20 - Math.random()*200,
+        vx:(Math.random()-0.5)*4,
+        vy:2 + Math.random()*5,
+        size:4 + Math.random()*6,
+        rot:Math.random()*Math.PI,
+        vr:(Math.random()-0.5)*0.2,
+        life:200
+      });
+    }
+
+    draw();
+  }
+
+  function updateConfetti(){
+
+    confetti.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.vr;
+      p.life--;
+    });
+
+    confetti = confetti.filter(p => p.life > 0);
+  }
+
+  function drawConfetti(){
+
+    confetti.forEach(p => {
+
+      ctx.save();
+
+      ctx.translate(p.x,p.y);
+      ctx.rotate(p.rot);
+
+      ctx.fillStyle = `hsl(${(p.x+p.y)%360},80%,60%)`;
+
+      ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size);
+
+      ctx.restore();
+    });
+  }
+
+  /* =========================================================
+     BUTTONS
+     ========================================================= */
+
+  document.getElementById("checkBtn").addEventListener("click", () => {
+
+    const solved = checkSolved();
+
+    if(solved){
+      setStatus("Solved! 🎉", true);
+      launchConfetti();
+    }else{
+      setStatus("Not yet solved", false);
+    }
+
+    draw();
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    initPuzzle(currentPuzzleIndex);
+  });
+
+  document.getElementById("nextBtn").addEventListener("click", () => {
+
+    let next = (currentPuzzleIndex + 1) % PUZZLES.length;
+    initPuzzle(next);
+  });
+
+  document.getElementById("newGameBtn").addEventListener("click", () => {
+
+    const random = Math.floor(Math.random()*PUZZLES.length);
+    initPuzzle(random);
+  });
+
+  document.querySelectorAll(".puzzleBtn").forEach(btn => {
+
+    btn.addEventListener("click", () => {
+
+      initPuzzle(Number(btn.dataset.index));
+    });
+  });
+
+  window.addEventListener("resize", () => {
+    resizeBoard();
+    draw();
+  });
+
+  /* =========================================================
+     START
+     ========================================================= */
+
+  initPuzzle(0);
+</script>
+
+</body>
+</html>
+

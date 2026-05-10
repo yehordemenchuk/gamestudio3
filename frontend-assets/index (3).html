@@ -1,0 +1,1151 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Slitherlink Green Edition</title>
+  <style>
+    :root {
+      --bg-dark: #0f2b0f;
+      --bg-mid: #1e4d1e;
+      --green: #2e7d32;
+      --green-light: #4caf50;
+      --green-soft: #81c784;
+      --green-pale: #c8e6c9;
+      --text: #f1fff1;
+      --danger: #9ccc65;
+      --shadow: rgba(0,0,0,0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        repeating-linear-gradient(
+          45deg,
+          rgba(255,255,255,0.02) 0px,
+          rgba(255,255,255,0.02) 10px,
+          rgba(0,0,0,0.02) 10px,
+          rgba(0,0,0,0.02) 20px
+        ),
+        linear-gradient(180deg, var(--bg-dark), var(--bg-mid));
+      min-height: 100vh;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(15,43,15,0.95);
+      backdrop-filter: blur(6px);
+      border-bottom: 2px solid var(--green-light);
+      box-shadow: 0 4px 10px var(--shadow);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1000px;
+      margin: auto;
+      padding: 16px;
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.7rem;
+      font-weight: bold;
+      color: var(--green-pale);
+    }
+
+    .logo svg {
+      width: 52px;
+      height: 52px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .nav-links button,
+    .btn {
+      background: linear-gradient(180deg, var(--green-light), var(--green));
+      border: none;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.25s ease;
+      font-weight: bold;
+      box-shadow: 0 4px 8px var(--shadow);
+    }
+
+    .nav-links button:hover,
+    .btn:hover {
+      transform: translateY(-2px) scale(1.03);
+      background: linear-gradient(180deg, #66bb6a, var(--green));
+    }
+
+    .nav-links button.active {
+      outline: 2px solid var(--green-pale);
+    }
+
+    .user-box {
+      color: var(--green-pale);
+      font-weight: bold;
+    }
+
+    .page {
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hero {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      color: var(--green-pale);
+    }
+
+    .hero p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 8px 20px var(--shadow);
+      margin-top: 20px;
+    }
+
+    .rules-list li {
+      margin-bottom: 10px;
+    }
+
+    .mini-grid {
+      display: inline-grid;
+      grid-template-columns: repeat(3, 40px);
+      gap: 4px;
+      margin-top: 12px;
+    }
+
+    .mini-cell {
+      width: 40px;
+      height: 40px;
+      border: 2px solid var(--green-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    .canvas-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 20px 0;
+    }
+
+    canvas {
+      background: #efffed;
+      border-radius: 12px;
+      border: 3px solid var(--green-soft);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+      max-width: 100%;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .alert {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 12px;
+      background: rgba(129,199,132,0.15);
+      border: 1px solid var(--green-soft);
+      color: var(--green-pale);
+      min-height: 48px;
+    }
+
+    .auth-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .auth-form {
+      display: none;
+    }
+
+    .auth-form.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--green-soft);
+      background: rgba(255,255,255,0.1);
+      color: white;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: rgba(255,255,255,0.6);
+    }
+
+    .review-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .rating-display {
+      font-size: 1.2rem;
+      color: #66bb6a;
+    }
+
+    .stars {
+      display: flex;
+      gap: 6px;
+      font-size: 2rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .star {
+      color: gray;
+      transition: 0.2s;
+    }
+
+    .star.filled {
+      color: #66bb6a;
+    }
+
+    .review-item {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .review-top {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .review-comment {
+      margin-top: 12px;
+      line-height: 1.5;
+    }
+
+    .footer-note {
+      text-align: center;
+      margin-top: 40px;
+      opacity: 0.7;
+    }
+
+    .pulse {
+      width: 100px;
+      height: 100px;
+      margin: 30px auto;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--green-soft), transparent);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(0.8);
+        opacity: 0.7;
+      }
+      70% {
+        transform: scale(1.3);
+        opacity: 0;
+      }
+      100% {
+        transform: scale(0.8);
+        opacity: 0;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .hero h1 {
+        font-size: 2.2rem;
+      }
+
+      .navbar {
+        justify-content: center;
+      }
+
+      .review-top {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="container navbar">
+    <div class="logo">
+      <svg viewBox="0 0 100 100" fill="none">
+        <path d="M20 20 H70 V50 H40 V80 H80" stroke="#81c784" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="20" cy="20" r="6" fill="#c8e6c9"/>
+        <circle cx="80" cy="80" r="6" fill="#c8e6c9"/>
+      </svg>
+      Slitherlink
+    </div>
+
+    <div class="nav-links">
+      <button data-page="home" class="nav-btn active">Home</button>
+      <button data-page="game" class="nav-btn">Game</button>
+      <button data-page="auth" class="nav-btn">Auth</button>
+      <button data-page="reviews" class="nav-btn">Reviews</button>
+      <button id="logoutBtn" style="display:none;">Logout</button>
+    </div>
+
+    <div class="user-box" id="userBox">Guest</div>
+  </div>
+</header>
+
+<main class="container">
+
+  <section id="home" class="page active">
+    <div class="hero card">
+      <h1>Slitherlink Green Edition</h1>
+      <p>
+        Draw one continuous loop around the puzzle grid. Every number tells you exactly how many surrounding edges belong to the loop.
+      </p>
+
+      <div class="pulse"></div>
+
+      <button class="btn" id="playNowBtn">Play Now</button>
+    </div>
+
+    <div class="card">
+      <h2>Rules</h2>
+      <ul class="rules-list">
+        <li>Click edges to cycle through: empty → line → cross → empty.</li>
+        <li>Numbers indicate how many surrounding edges are used.</li>
+        <li>All lines must form a single continuous loop.</li>
+        <li>No branches or dangling paths are allowed.</li>
+        <li>Use Hint if you get stuck.</li>
+      </ul>
+
+      <div class="mini-grid">
+        <div class="mini-cell">3</div>
+        <div class="mini-cell"></div>
+        <div class="mini-cell">1</div>
+        <div class="mini-cell"></div>
+        <div class="mini-cell">2</div>
+        <div class="mini-cell"></div>
+        <div class="mini-cell">0</div>
+        <div class="mini-cell"></div>
+        <div class="mini-cell">3</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="game" class="page">
+    <div class="card">
+      <h2>Slitherlink Puzzle</h2>
+
+      <div class="canvas-wrapper">
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+      </div>
+
+      <div class="controls">
+        <button class="btn" id="checkBtn">Check</button>
+        <button class="btn" id="resetBtn">Reset</button>
+        <button class="btn" id="newBtn">New Puzzle</button>
+        <button class="btn" id="hintBtn">Hint</button>
+      </div>
+
+      <div class="alert" id="gameMessage">
+        Welcome to Slitherlink.
+      </div>
+    </div>
+  </section>
+
+  <section id="auth" class="page">
+    <div class="card">
+      <h2>Authorization</h2>
+
+      <div class="auth-tabs">
+        <button class="btn" id="loginTab">Login</button>
+        <button class="btn" id="registerTab">Register</button>
+      </div>
+
+      <div id="authMessage" class="alert">Use local account simulation.</div>
+
+      <form id="loginForm" class="auth-form active">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="loginUsername" placeholder="Enter username" />
+        </div>
+
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="loginPassword" placeholder="Enter password" />
+        </div>
+
+        <button type="submit" class="btn">Login</button>
+      </form>
+
+      <form id="registerForm" class="auth-form">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="registerUsername" placeholder="Choose username" />
+        </div>
+
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="registerPassword" placeholder="Choose password" />
+        </div>
+
+        <div class="form-group">
+          <label>Confirm Password</label>
+          <input type="password" id="confirmPassword" placeholder="Confirm password" />
+        </div>
+
+        <button type="submit" class="btn">Register</button>
+      </form>
+    </div>
+  </section>
+
+  <section id="reviews" class="page">
+    <div class="card">
+      <div class="review-header">
+        <div>
+          <h2>User Reviews</h2>
+          <div id="averageRating" class="rating-display">Average Rating: 0.0 ☆</div>
+        </div>
+
+        <button class="btn" id="sortBtn">Sort by Rating</button>
+      </div>
+
+      <div id="reviewAuthMessage" class="alert">
+        Please log in to leave a review.
+      </div>
+
+      <div id="reviewFormWrapper">
+        <div class="form-group">
+          <label>Your Rating</label>
+          <div class="stars" id="starWidget"></div>
+        </div>
+
+        <div class="form-group">
+          <label>Your Comment</label>
+          <textarea id="reviewComment" maxlength="200" placeholder="Share your experience..."></textarea>
+        </div>
+
+        <button class="btn" id="submitReviewBtn">Submit Review</button>
+      </div>
+
+      <div id="reviewsList"></div>
+    </div>
+  </section>
+
+  <div class="footer-note">
+    Slitherlink Green Edition • Pure HTML/CSS/JavaScript • LocalStorage Powered
+  </div>
+
+</main>
+
+<script>
+  const pages = document.querySelectorAll('.page');
+  const navButtons = document.querySelectorAll('.nav-btn');
+
+  function showPage(id) {
+    pages.forEach(page => page.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+
+    navButtons.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.page === id);
+    });
+  }
+
+  navButtons.forEach(btn => {
+    btn.addEventListener('click', () => showPage(btn.dataset.page));
+  });
+
+  document.getElementById('playNowBtn').addEventListener('click', () => {
+    showPage('game');
+  });
+
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+
+  const GRID = 6;
+  const CELL = 60;
+  const OFFSET = 20;
+
+  const puzzles = [
+    [
+      [3, null, 2, null, 1, null],
+      [null, 2, null, 1, null, 2],
+      [1, null, 3, null, 2, null],
+      [null, 1, null, 2, null, 3],
+      [2, null, 1, null, 3, null],
+      [null, 2, null, 1, null, 2]
+    ],
+    [
+      [0, 1, null, 2, null, 3],
+      [null, 2, 3, null, 1, null],
+      [1, null, 2, null, 0, 2],
+      [null, 3, null, 1, null, 2],
+      [2, null, 0, null, 3, null],
+      [1, 2, null, 2, null, 1]
+    ],
+    [
+      [null, 3, null, 2, null, 1],
+      [2, null, 1, null, 3, null],
+      [null, 2, null, 3, null, 1],
+      [1, null, 2, null, 2, null],
+      [null, 1, null, 3, null, 2],
+      [2, null, 1, null, 3, null]
+    ],
+    [
+      [1, null, 1, null, 2, null],
+      [null, 3, null, 2, null, 1],
+      [2, null, 0, null, 3, null],
+      [null, 2, null, 1, null, 2],
+      [3, null, 2, null, 1, null],
+      [null, 1, null, 2, null, 0]
+    ]
+  ];
+
+  let puzzleIndex = 0;
+  let puzzle = puzzles[puzzleIndex];
+
+  let hEdges = Array.from({length: GRID + 1}, () => Array(GRID).fill(0));
+  let vEdges = Array.from({length: GRID}, () => Array(GRID + 1).fill(0));
+
+  function saveGame() {
+    localStorage.setItem('slitherGame', JSON.stringify({
+      hEdges,
+      vEdges,
+      puzzleIndex
+    }));
+  }
+
+  function loadGame() {
+    const data = JSON.parse(localStorage.getItem('slitherGame'));
+
+    if(data) {
+      hEdges = data.hEdges;
+      vEdges = data.vEdges;
+      puzzleIndex = data.puzzleIndex;
+      puzzle = puzzles[puzzleIndex];
+    }
+  }
+
+  function drawGame() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = '#efffed';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = '#2e7d32';
+    ctx.lineWidth = 1;
+
+    for(let r = 0; r <= GRID; r++) {
+      for(let c = 0; c < GRID; c++) {
+        const x1 = OFFSET + c * CELL;
+        const y1 = OFFSET + r * CELL;
+        const x2 = x1 + CELL;
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y1);
+        ctx.stroke();
+
+        drawEdgeState(hEdges[r][c], x1, y1, x2, y1);
+      }
+    }
+
+    for(let r = 0; r < GRID; r++) {
+      for(let c = 0; c <= GRID; c++) {
+        const x1 = OFFSET + c * CELL;
+        const y1 = OFFSET + r * CELL;
+        const y2 = y1 + CELL;
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x1, y2);
+        ctx.stroke();
+
+        drawEdgeState(vEdges[r][c], x1, y1, x1, y2);
+      }
+    }
+
+    for(let r = 0; r <= GRID; r++) {
+      for(let c = 0; c <= GRID; c++) {
+        const x = OFFSET + c * CELL;
+        const y = OFFSET + r * CELL;
+
+        ctx.fillStyle = '#0f2b0f';
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    for(let r = 0; r < GRID; r++) {
+      for(let c = 0; c < GRID; c++) {
+        const value = puzzle[r][c];
+        if(value !== null) {
+          ctx.fillStyle = '#1e4d1e';
+          ctx.fillText(
+            value,
+            OFFSET + c * CELL + CELL / 2,
+            OFFSET + r * CELL + CELL / 2
+          );
+        }
+      }
+    }
+  }
+
+  function drawEdgeState(state, x1, y1, x2, y2) {
+    if(state === 1) {
+      ctx.strokeStyle = '#2e7d32';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+
+    if(state === 2) {
+      ctx.strokeStyle = '#81c784';
+      ctx.lineWidth = 3;
+
+      const mx = (x1 + x2) / 2;
+      const my = (y1 + y2) / 2;
+
+      ctx.beginPath();
+      ctx.moveTo(mx - 8, my - 8);
+      ctx.lineTo(mx + 8, my + 8);
+      ctx.moveTo(mx + 8, my - 8);
+      ctx.lineTo(mx - 8, my + 8);
+      ctx.stroke();
+    }
+
+    ctx.lineWidth = 1;
+  }
+
+  canvas.addEventListener('click', e => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const threshold = 10;
+
+    for(let r = 0; r <= GRID; r++) {
+      for(let c = 0; c < GRID; c++) {
+        const x1 = OFFSET + c * CELL;
+        const y1 = OFFSET + r * CELL;
+        const x2 = x1 + CELL;
+
+        if(distanceToSegment(x, y, x1, y1, x2, y1) < threshold) {
+          hEdges[r][c] = (hEdges[r][c] + 1) % 3;
+          drawGame();
+          saveGame();
+          return;
+        }
+      }
+    }
+
+    for(let r = 0; r < GRID; r++) {
+      for(let c = 0; c <= GRID; c++) {
+        const x1 = OFFSET + c * CELL;
+        const y1 = OFFSET + r * CELL;
+        const y2 = y1 + CELL;
+
+        if(distanceToSegment(x, y, x1, y1, x1, y2) < threshold) {
+          vEdges[r][c] = (vEdges[r][c] + 1) % 3;
+          drawGame();
+          saveGame();
+          return;
+        }
+      }
+    }
+  });
+
+  function distanceToSegment(px, py, x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+
+    const t = ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy);
+    const clamped = Math.max(0, Math.min(1, t));
+
+    const cx = x1 + clamped * dx;
+    const cy = y1 + clamped * dy;
+
+    return Math.hypot(px - cx, py - cy);
+  }
+
+  function setMessage(msg) {
+    document.getElementById('gameMessage').textContent = msg;
+  }
+
+  function resetBoard() {
+    hEdges = Array.from({length: GRID + 1}, () => Array(GRID).fill(0));
+    vEdges = Array.from({length: GRID}, () => Array(GRID + 1).fill(0));
+
+    drawGame();
+    saveGame();
+    setMessage('Board reset.');
+  }
+
+  function newPuzzle() {
+    puzzleIndex = (puzzleIndex + 1) % puzzles.length;
+    puzzle = puzzles[puzzleIndex];
+    resetBoard();
+    setMessage('New puzzle loaded.');
+  }
+
+  function checkSolution() {
+    for(let r = 0; r < GRID; r++) {
+      for(let c = 0; c < GRID; c++) {
+        const num = puzzle[r][c];
+        if(num !== null) {
+          let count = 0;
+
+          if(hEdges[r][c] === 1) count++;
+          if(hEdges[r + 1][c] === 1) count++;
+          if(vEdges[r][c] === 1) count++;
+          if(vEdges[r][c + 1] === 1) count++;
+
+          if(count !== num) {
+            setMessage(`Incorrect edge count near cell (${r + 1}, ${c + 1}).`);
+            return;
+          }
+        }
+      }
+    }
+
+    const vertices = {};
+
+    function addEdge(a, b) {
+      if(!vertices[a]) vertices[a] = [];
+      if(!vertices[b]) vertices[b] = [];
+
+      vertices[a].push(b);
+      vertices[b].push(a);
+    }
+
+    for(let r = 0; r <= GRID; r++) {
+      for(let c = 0; c < GRID; c++) {
+        if(hEdges[r][c] === 1) {
+          addEdge(`${r},${c}`, `${r},${c + 1}`);
+        }
+      }
+    }
+
+    for(let r = 0; r < GRID; r++) {
+      for(let c = 0; c <= GRID; c++) {
+        if(vEdges[r][c] === 1) {
+          addEdge(`${r},${c}`, `${r + 1},${c}`);
+        }
+      }
+    }
+
+    const keys = Object.keys(vertices);
+
+    if(keys.length === 0) {
+      setMessage('No loop drawn.');
+      return;
+    }
+
+    for(const key of keys) {
+      if(vertices[key].length !== 2) {
+        setMessage('Loop has branches or dangling edges.');
+        return;
+      }
+    }
+
+    const visited = new Set();
+
+    function dfs(node) {
+      visited.add(node);
+      vertices[node].forEach(n => {
+        if(!visited.has(n)) dfs(n);
+      });
+    }
+
+    dfs(keys[0]);
+
+    if(visited.size !== keys.length) {
+      setMessage('Multiple loops detected.');
+      return;
+    }
+
+    setMessage('Success! Perfect continuous loop!');
+  }
+
+  const hints = [
+    'A 0 means all surrounding edges are empty.',
+    'A 3 usually forces many edges around it.',
+    'Corners with 3 are highly constrained.',
+    'Avoid creating branches.',
+    'Every loop vertex must have exactly 2 connected lines.',
+    'A completed loop cannot split into separate loops.',
+    'Use crosses to mark impossible edges.',
+    'Diagonal 3s often imply strong edge patterns.',
+    'If a cell already has enough edges, cross the rest.',
+    'The loop must close back onto itself.'
+  ];
+
+  function giveHint() {
+    for(let r = 0; r < GRID; r++) {
+      for(let c = 0; c < GRID; c++) {
+        if(puzzle[r][c] === 0) {
+          hEdges[r][c] = 2;
+          hEdges[r + 1][c] = 2;
+          vEdges[r][c] = 2;
+          vEdges[r][c + 1] = 2;
+          drawGame();
+          saveGame();
+          setMessage('Hint: 0 cells cannot have loop edges.');
+          return;
+        }
+      }
+    }
+
+    const randomHint = hints[Math.floor(Math.random() * hints.length)];
+    setMessage(randomHint);
+  }
+
+
+  document.getElementById('checkBtn').addEventListener('click', checkSolution);
+  document.getElementById('resetBtn').addEventListener('click', resetBoard);
+  document.getElementById('newBtn').addEventListener('click', newPuzzle);
+  document.getElementById('hintBtn').addEventListener('click', giveHint);
+
+  loadGame();
+  drawGame();
+
+  const loginTab = document.getElementById('loginTab');
+  const registerTab = document.getElementById('registerTab');
+  const loginForm = document.getElementById('loginForm');
+  const registerForm = document.getElementById('registerForm');
+  const authMessage = document.getElementById('authMessage');
+  const userBox = document.getElementById('userBox');
+  const logoutBtn = document.getElementById('logoutBtn');
+
+  loginTab.addEventListener('click', () => {
+    loginForm.classList.add('active');
+    registerForm.classList.remove('active');
+  });
+
+  registerTab.addEventListener('click', () => {
+    registerForm.classList.add('active');
+    loginForm.classList.remove('active');
+  });
+
+  function getUsers() {
+    return JSON.parse(localStorage.getItem('users')) || [];
+  }
+
+  function setUsers(users) {
+    localStorage.setItem('users', JSON.stringify(users));
+  }
+
+  function updateUserUI() {
+    const currentUser = localStorage.getItem('currentUser');
+
+    if(currentUser) {
+      userBox.textContent = `Logged in as ${currentUser}`;
+      logoutBtn.style.display = 'inline-block';
+      loginForm.style.display = 'none';
+      registerForm.style.display = 'none';
+      authMessage.textContent = `Welcome back, ${currentUser}.`;
+    } else {
+      userBox.textContent = 'Guest';
+      logoutBtn.style.display = 'none';
+      loginForm.style.display = 'block';
+      loginForm.classList.add('active');
+      registerForm.style.display = 'none';
+      authMessage.textContent = 'Please log in or register.';
+    }
+
+    updateReviewUI();
+  }
+
+  registerForm.addEventListener('submit', e => {
+    e.preventDefault();
+
+    const username = document.getElementById('registerUsername').value.trim();
+    const password = document.getElementById('registerPassword').value;
+    const confirm = document.getElementById('confirmPassword').value;
+
+    if(!username || !password) {
+      authMessage.textContent = 'Please complete all fields.';
+      return;
+    }
+
+    if(password !== confirm) {
+      authMessage.textContent = 'Passwords do not match.';
+      return;
+    }
+
+    const users = getUsers();
+
+    if(users.find(u => u.username === username)) {
+      authMessage.textContent = 'Username already exists.';
+      return;
+    }
+
+    users.push({username, password});
+    setUsers(users);
+
+    authMessage.textContent = 'Registration successful. You may now log in.';
+    registerForm.reset();
+  });
+
+  loginForm.addEventListener('submit', e => {
+    e.preventDefault();
+
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+
+    const users = getUsers();
+
+    const user = users.find(u => u.username === username && u.password === password);
+
+    if(user) {
+      localStorage.setItem('currentUser', username);
+      authMessage.textContent = 'Login successful.';
+      updateUserUI();
+    } else {
+      authMessage.textContent = 'Invalid credentials.';
+    }
+  });
+
+  logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('currentUser');
+    updateUserUI();
+  });
+
+  const starWidget = document.getElementById('starWidget');
+  const reviewsList = document.getElementById('reviewsList');
+  const averageRating = document.getElementById('averageRating');
+  const reviewAuthMessage = document.getElementById('reviewAuthMessage');
+  const reviewFormWrapper = document.getElementById('reviewFormWrapper');
+  const sortBtn = document.getElementById('sortBtn');
+
+  let selectedRating = 0;
+  let sortMode = 'newest';
+
+  function createStars() {
+    starWidget.innerHTML = '';
+
+    for(let i = 1; i <= 5; i++) {
+      const span = document.createElement('span');
+      span.className = 'star';
+      span.innerHTML = '★';
+
+      span.addEventListener('click', () => {
+        selectedRating = i;
+        renderSelectedStars();
+      });
+
+      starWidget.appendChild(span);
+    }
+
+    renderSelectedStars();
+  }
+
+  function renderSelectedStars() {
+    [...starWidget.children].forEach((star, index) => {
+      star.classList.toggle('filled', index < selectedRating);
+    });
+  }
+
+  function getReviews() {
+    return JSON.parse(localStorage.getItem('reviews')) || [];
+  }
+
+  function saveReviews(reviews) {
+    localStorage.setItem('reviews', JSON.stringify(reviews));
+  }
+
+  function updateReviewUI() {
+    const currentUser = localStorage.getItem('currentUser');
+
+    if(currentUser) {
+      reviewAuthMessage.textContent = `Logged in as ${currentUser}. Leave your review below.`;
+      reviewFormWrapper.style.opacity = '1';
+      reviewFormWrapper.style.pointerEvents = 'auto';
+    } else {
+      reviewAuthMessage.textContent = 'Please log in to leave a review.';
+      reviewFormWrapper.style.opacity = '0.5';
+      reviewFormWrapper.style.pointerEvents = 'none';
+    }
+  }
+
+  function renderReviews() {
+    let reviews = getReviews();
+
+    if(sortMode === 'rating') {
+      reviews.sort((a, b) => b.rating - a.rating);
+    } else {
+      reviews.sort((a, b) => new Date(b.dateRaw) - new Date(a.dateRaw));
+    }
+
+    reviewsList.innerHTML = '';
+
+    let avg = 0;
+
+    if(reviews.length) {
+      avg = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+    }
+
+    averageRating.textContent = `Average Rating: ${avg.toFixed(1)} ★`;
+
+    reviews.forEach(review => {
+      const div = document.createElement('div');
+      div.className = 'review-item';
+
+      const filled = '★'.repeat(review.rating);
+      const empty = '☆'.repeat(5 - review.rating);
+
+      div.innerHTML = `
+            <div class="review-top">
+                <strong>${review.username}</strong>
+                <span>${review.date}</span>
+            </div>
+
+            <div class="rating-display">${filled}${empty}</div>
+
+            <div class="review-comment">
+                ${review.comment}
+            </div>
+        `;
+
+      reviewsList.appendChild(div);
+    });
+  }
+
+  sortBtn.addEventListener('click', () => {
+    sortMode = sortMode === 'newest' ? 'rating' : 'newest';
+    sortBtn.textContent = sortMode === 'newest' ? 'Sort by Rating' : 'Sort by Newest';
+    renderReviews();
+  });
+
+  document.getElementById('submitReviewBtn').addEventListener('click', () => {
+    const currentUser = localStorage.getItem('currentUser');
+
+    if(!currentUser) return;
+
+    const comment = document.getElementById('reviewComment').value.trim();
+
+    if(selectedRating < 0 || selectedRating > 5) {
+      return;
+    }
+
+    if(comment.length === 0) {
+      reviewAuthMessage.textContent = 'Please enter a comment.';
+      return;
+    }
+
+    const reviews = getReviews();
+
+    const now = new Date();
+
+    reviews.unshift({
+      username: currentUser,
+      rating: selectedRating,
+      comment,
+      date: now.toLocaleDateString('en-GB'),
+      dateRaw: now.toISOString()
+    });
+
+    saveReviews(reviews);
+
+    selectedRating = 0;
+    renderSelectedStars();
+
+    document.getElementById('reviewComment').value = '';
+
+    reviewAuthMessage.textContent = 'Review submitted successfully.';
+
+    renderReviews();
+  });
+
+  createStars();
+  renderReviews();
+  updateUserUI();
+</script>
+</body>
+</html>
