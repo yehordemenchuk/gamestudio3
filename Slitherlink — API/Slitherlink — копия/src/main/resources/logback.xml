@@ -2,22 +2,6 @@
 
     <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener"/>
 
-    <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
-        <http>
-            <url>http://localhost:3100/loki/api/v1/push</url>
-        </http>
-
-        <format>
-            <label>
-                <pattern>app=gamestudio,service_name=gamestudio,level=%level</pattern>
-            </label>
-
-            <message>
-                <pattern>%msg</pattern>
-            </message>
-        </format>
-    </appender>
-
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{HH:mm:ss} %-5level %msg%n</pattern>
@@ -26,7 +10,6 @@
 
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="LOKI"/>
     </root>
 
 </configuration>
