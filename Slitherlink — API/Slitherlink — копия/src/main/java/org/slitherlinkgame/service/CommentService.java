@@ -26,6 +26,8 @@ public class CommentService {
             @CacheEvict(value = "commentsByGame", allEntries = true)
     })
     public CommentResponse createComment(CommentRequest request) {
+        System.out.println("Creating comment: " + request);
+
         Comment comment = commentMapper.fromRequest(request);
         return commentMapper.toResponse(commentRepository.save(comment));
     }
