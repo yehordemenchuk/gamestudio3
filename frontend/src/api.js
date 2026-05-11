@@ -173,10 +173,19 @@ export async function createRating({ player, rating }) {
   return parseJson(response);
 }
 
-export async function loadUserByEmail(email) {
+function escapeEmailForPathSegment(email) {
   const normalized = normalizeLoginEmail(email);
-  const safe = encodeURIComponent(normalized);
-  const response = await fetchWithAuth(`/api/v1/users/${safe}`);
+  let out = "";
+  for (const ch of normalized) {
+    if (ch === "@" || /[a-zA-Z0-9._+-]/.test(ch)) out += ch;
+    else out += encodeURIComponent(ch);
+  }
+  return out;
+}
+
+export async function loadUserByEmail(email) {
+  const segment = escapeEmailForPathSegment(email);
+  const response = await fetchWithAuth(`/api/v1/users/${segment}`);
   return parseJson(response);
 }
 
