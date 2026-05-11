@@ -37,8 +37,7 @@ public class SecurityConfig {
                         -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers("/api/v1/auth/**").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/api/v1/users/**").permitAll()
-                                .requestMatchers("/api/v1/users/**").hasRole("ADMIN")
+                                .requestMatchers("/api/v1/users/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
