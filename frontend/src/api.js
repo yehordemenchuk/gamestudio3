@@ -1,5 +1,11 @@
 import { getRuntimeApiBase } from "./apiBase.js";
-import { clearTokens, getAccessToken, getRefreshToken, tryRefreshTokens } from "./auth";
+import {
+  clearTokens,
+  getAccessToken,
+  getRefreshToken,
+  normalizeLoginEmail,
+  tryRefreshTokens
+} from "./auth";
 
 export const GAME = "slitherlink";
 
@@ -168,7 +174,8 @@ export async function createRating({ player, rating }) {
 }
 
 export async function loadUserByEmail(email) {
-  const safe = encodeURIComponent(String(email).trim());
+  const normalized = normalizeLoginEmail(email);
+  const safe = encodeURIComponent(normalized);
   const response = await fetchWithAuth(`/api/v1/users/${safe}`);
   return parseJson(response);
 }

@@ -36,6 +36,23 @@ export function isLoggedIn() {
   return Boolean(getAccessToken() || getRefreshToken());
 }
 
+export function normalizeLoginEmail(value) {
+  if (value == null) return "";
+  let s = String(value).trim();
+  if (!s) return "";
+  for (let i = 0; i < 4; i++) {
+    const before = s;
+    try {
+      s = decodeURIComponent(s);
+    } catch {
+      break;
+    }
+    if (s === before) break;
+  }
+  s = s.replace(/%40/gi, "@");
+  return s.trim();
+}
+
 export function getEmailFromAccessToken() {
   const token = getAccessToken();
   if (!token || typeof token !== "string") return null;
@@ -45,7 +62,9 @@ export function getEmailFromAccessToken() {
     const b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
     const pad = b64.length % 4 === 0 ? "" : "=".repeat(4 - (b64.length % 4));
     const payload = JSON.parse(atob(b64 + pad));
-    return typeof payload.sub === "string" ? payload.sub : null;
+    if (typeof payload.sub !== "string") return null;
+    const normalized = normalizeLoginEmail(payload.sub);
+    return normalized || null;
   } catch {
     return null;
   }
